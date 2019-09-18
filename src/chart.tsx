@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import './chart.css';
 
 interface State {
-
+  chartId: string;
 }
 
 interface Props {
@@ -14,6 +14,10 @@ interface Props {
 
 class Chart extends React.Component<Props, State> {
   ref: React.RefObject<SVGSVGElement> = React.createRef();
+
+  state = {
+    chartId: btoa(Math.random().toString()).substring(0,12)
+  }
 
   drawChart = () => {
     const data = [
@@ -72,7 +76,7 @@ class Chart extends React.Component<Props, State> {
       .call(yAxis)
 
     const circleGroup = svg.append('g')
-      .attr('clip-path', `url(#clip)`)
+      .attr('clip-path', `url(#clip-${this.state.chartId})`)
 
     const circles = circleGroup.selectAll('circle')
       .data(data)
@@ -84,7 +88,7 @@ class Chart extends React.Component<Props, State> {
 
     d3.select(this.ref.current).append('defs')
       .append('clipPath')
-        .attr('id', 'clip')
+        .attr('id', `clip-${this.state.chartId}`)
       .append('rect')
         .attr('width', width)
         .attr('height', height)
