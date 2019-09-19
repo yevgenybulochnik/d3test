@@ -1,123 +1,123 @@
 import React from 'react';
 import * as d3 from 'd3';
 import './chart.css';
+import { ScaleLinear } from 'd3';
 
 interface State {
   chartId: string;
+  chartWidth: number;
+  chartHeight: number;
+  xScale: ScaleLinear<any, any>;
+  yScale: ScaleLinear<any, any>;
 }
 
 interface Props {
   width: number;
   height: number;
   margin: number;
+  data: any;
 }
 
 class Chart extends React.Component<Props, State> {
   ref: React.RefObject<SVGSVGElement> = React.createRef();
 
   state = {
-    chartId: btoa(Math.random().toString()).substring(0,12)
+    chartId: btoa(Math.random().toString()).substring(0,12),
+    chartWidth: this.props.width - this.props.margin*2,
+    chartHeight: this.props.height - this.props.margin*2,
+    xScale: d3.scaleLinear().domain([0, 1000]).range([0, this.props.width - this.props.margin*2]),
+    yScale: d3.scaleLinear().domain([0, 1000]).range([this.props.height - this.props.margin*2, 0])
   }
 
   drawChart = () => {
-    const data = [
-      [100, 100],
-      [110, 110],
-      [112, 112],
-      [115, 115],
-      [200, 200],
-      [300, 300]
-    ]
-
-    const width = this.props.width - this.props.margin*2
-    const height = this.props.height - this.props.margin*2
-
-    const zoom = d3.zoom()
-      .on('zoom', zoomed)
+    const { chartId, chartWidth, chartHeight, xScale, yScale } = this.state
+    const zoom = d3.zoom().on('zoom', this.onZoom)
 
     const svg = d3.select(this.ref.current)
-      .attr('width', width + this.props.margin*2)
-      .attr('height', height + this.props.margin*2)
+      .call(zoom as any)
       .append('g')
         .attr('transform', `translate(${this.props.margin}, ${this.props.margin})`)
 
-    const x = d3.scaleLinear()
-      .domain([0, 1000])
-      .range([0, width])
+    const xAxis = svg.append('g')
+      .attr('class', 'xAxis')
+      .attr('transform', `translate(0, ${chartHeight})`)
+      .call(d3.axisBottom(xScale))
 
-    const y = d3.scaleLinear()
-      .domain([0, 1000])
-      .range([height, 0])
-
-    const xAxis = d3.axisBottom(x)
-    const yAxis = d3.axisLeft(y)
+    const yAxis = svg.append('g')
+      .attr('class', 'yAxis')
+      .call(d3.axisLeft(yScale))
 
     const xGrid = svg.append('g')
-      .attr('opacity', 0.2)
+      .attr('class', 'xGrid')
       .call(
-        d3.axisBottom(x)
-          .tickSize(height)
+        d3.axisBottom(xScale)
+          .tickSize(chartHeight)
           .tickFormat(() => '')
       )
 
     const yGrid = svg.append('g')
-      .attr('opacity', 0.2)
+      .attr('class', 'yGrid')
       .call(
-        d3.axisLeft(y)
-          .tickSize(-width)
+        d3.axisLeft(yScale)
+          .tickSize(-chartWidth)
           .tickFormat(() => '')
       )
 
-    const gX = svg.append('g')
-      .attr('transform', `translate(0, ${height})`)
-      .call(xAxis)
+    const dataGroup = svg.append('g')
+      .attr('class', 'dataGroup')
+  }
 
-    const gY = svg.append('g')
-      .call(yAxis)
-
-    const circleGroup = svg.append('g')
-      .attr('clip-path', `url(#clip-${this.state.chartId})`)
-
-    const circles = circleGroup.selectAll('circle')
-      .data(data)
-      .enter().append('circle')
-        .attr('cx', (d) => x(d[0]))
-        .attr('cy', (d) => y(d[1]))
+  setData = () => {
+    const { xScale, yScale } = this.state
+    const data = d3.select(this.ref.current).select('.dataGroup').selectAll('circle')
+      .data(this.props.data)
+      .enter().append('circle').transition()
+        .attr('cx', (d: any) => xScale(d.x))
+        .attr('cy', (d: any) => yScale(d.y))
         .attr('r', 10)
         .attr('opacity', 0.3)
 
-    d3.select(this.ref.current).append('defs')
-      .append('clipPath')
-        .attr('id', `clip-${this.state.chartId}`)
-      .append('rect')
-        .attr('width', width)
-        .attr('height', height)
-
-    //@ts-ignore
-    d3.select(this.ref.current).call(zoom)
-
-    function zoomed() {
-      circles.attr('transform', d3.event.transform)
-      xGrid.call(
-        d3.axisBottom(x)
-            .scale(d3.event.transform.rescaleX(x))
-            .tickSize(height)
-            .tickFormat(() => '')
-      )
-      yGrid.call(
-        d3.axisLeft(y)
-            .scale(d3.event.transform.rescaleY(y))
-            .tickSize(-width)
-            .tickFormat(() => '')
-      )
-      gX.call(xAxis.scale(d3.event.transform.rescaleX(x)))
-      gY.call(yAxis.scale(d3.event.transform.rescaleY(y)))
-    }
+    d3.select(this.ref.current).select('.dataGroup').selectAll('circle')
+      .data(this.props.data).exit()
+      .transition()
+        .attr('opacity', 0)
+      .remove()
 
   }
 
+  onZoom = () => {
+    const { chartId, chartWidth, chartHeight, xScale, yScale } = this.state
+    d3.select(this.ref.current).select<SVGSVGElement>('.dataGroup').attr('transform', d3.event.transform)
+    d3.select(this.ref.current).select<SVGSVGElement>('.xAxis').call(
+      d3.axisBottom(xScale)
+        .scale(d3.event.transform.rescaleX(xScale))
+    )
+    d3.select(this.ref.current).select<SVGSVGElement>('.yAxis').call(
+      d3.axisLeft(yScale)
+        .scale(d3.event.transform.rescaleY(yScale))
+    )
+    d3.select(this.ref.current).select<SVGSVGElement>('.xGrid').call(
+      d3.axisBottom(xScale)
+        .scale(d3.event.transform.rescaleX(xScale))
+          .tickSize(chartHeight)
+          .tickFormat(() => '')
+    )
+    d3.select(this.ref.current).select<SVGSVGElement>('.yGrid').call(
+      d3.axisLeft(yScale)
+        .scale(d3.event.transform.rescaleY(yScale))
+          .tickSize(-chartWidth)
+          .tickFormat(() => '')
+    )
+  }
+
+
   componentDidMount() {
     this.drawChart()
+    this.setData()
+  }
+
+  componentDidUpdate() {
+    this.setData()
   }
 
   render() {
