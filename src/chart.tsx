@@ -38,16 +38,19 @@ class Chart extends React.Component<Props, State> {
       .append('g')
         .attr('transform', `translate(${this.props.margin}, ${this.props.margin})`)
 
-    const xAxis = svg.append('g')
+    // X-Axis
+    svg.append('g')
       .attr('class', 'xAxis')
       .attr('transform', `translate(0, ${chartHeight})`)
       .call(d3.axisBottom(xScale))
 
-    const yAxis = svg.append('g')
+    // Y-Axis
+    svg.append('g')
       .attr('class', 'yAxis')
       .call(d3.axisLeft(yScale))
 
-    const xGrid = svg.append('g')
+    // X Grid
+    svg.append('g')
       .attr('class', 'xGrid')
       .call(
         d3.axisBottom(xScale)
@@ -55,7 +58,8 @@ class Chart extends React.Component<Props, State> {
           .tickFormat(() => '')
       )
 
-    const yGrid = svg.append('g')
+    // Y Grid
+    svg.append('g')
       .attr('class', 'yGrid')
       .call(
         d3.axisLeft(yScale)
@@ -63,11 +67,13 @@ class Chart extends React.Component<Props, State> {
           .tickFormat(() => '')
       )
 
-    const dataGroup = svg.append('g')
+    // Group for data
+    svg.append('g')
       .attr('clip-path', `url(#clip-${chartId})`)
         .append('g')
         .attr('class', 'dataGroup')
 
+    // Clip Path setup
     d3.select(this.ref.current).append('defs').append('clipPath')
       .attr('id', `clip-${chartId}`)
       .append('rect')
@@ -78,7 +84,9 @@ class Chart extends React.Component<Props, State> {
 
   setData = () => {
     const { xScale, yScale } = this.state
-    const data = d3.select(this.ref.current).select('.dataGroup').selectAll('circle')
+
+    // Insert data points
+    d3.select(this.ref.current).select('.dataGroup').selectAll('circle')
       .data(this.props.data)
       .enter().append('circle').transition()
         .attr('cx', (d: any) => xScale(d.x))
@@ -86,6 +94,7 @@ class Chart extends React.Component<Props, State> {
         .attr('r', 10)
         .attr('opacity', 0.3)
 
+    // Remove removed datapoints
     d3.select(this.ref.current).select('.dataGroup').selectAll('circle')
       .data(this.props.data).exit()
       .transition()
@@ -95,22 +104,27 @@ class Chart extends React.Component<Props, State> {
   }
 
   onZoom = () => {
-    const { chartId, chartWidth, chartHeight, xScale, yScale } = this.state
+    const {chartWidth, chartHeight, xScale, yScale } = this.state
+
     d3.select(this.ref.current).select('.dataGroup').attr('transform', d3.event.transform)
+
     d3.select(this.ref.current).select<SVGSVGElement>('.xAxis').call(
       d3.axisBottom(xScale)
         .scale(d3.event.transform.rescaleX(xScale))
     )
+
     d3.select(this.ref.current).select<SVGSVGElement>('.yAxis').call(
       d3.axisLeft(yScale)
         .scale(d3.event.transform.rescaleY(yScale))
     )
+
     d3.select(this.ref.current).select<SVGSVGElement>('.xGrid').call(
       d3.axisBottom(xScale)
         .scale(d3.event.transform.rescaleX(xScale))
           .tickSize(chartHeight)
           .tickFormat(() => '')
     )
+
     d3.select(this.ref.current).select<SVGSVGElement>('.yGrid').call(
       d3.axisLeft(yScale)
         .scale(d3.event.transform.rescaleY(yScale))
