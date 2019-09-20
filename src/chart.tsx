@@ -64,7 +64,16 @@ class Chart extends React.Component<Props, State> {
       )
 
     const dataGroup = svg.append('g')
-      .attr('class', 'dataGroup')
+      .attr('clip-path', `url(#clip-${chartId})`)
+        .append('g')
+        .attr('class', 'dataGroup')
+
+    d3.select(this.ref.current).append('defs').append('clipPath')
+      .attr('id', `clip-${chartId}`)
+      .append('rect')
+        .attr('width', chartWidth)
+        .attr('height', chartHeight)
+
   }
 
   setData = () => {
@@ -87,7 +96,7 @@ class Chart extends React.Component<Props, State> {
 
   onZoom = () => {
     const { chartId, chartWidth, chartHeight, xScale, yScale } = this.state
-    d3.select(this.ref.current).select<SVGSVGElement>('.dataGroup').attr('transform', d3.event.transform)
+    d3.select(this.ref.current).select('.dataGroup').attr('transform', d3.event.transform)
     d3.select(this.ref.current).select<SVGSVGElement>('.xAxis').call(
       d3.axisBottom(xScale)
         .scale(d3.event.transform.rescaleX(xScale))
