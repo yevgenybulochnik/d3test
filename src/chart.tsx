@@ -106,26 +106,33 @@ class Chart extends React.Component<Props, State> {
   onZoom = () => {
     const {chartWidth, chartHeight, xScale, yScale } = this.state
 
-    d3.select(this.ref.current).select('.dataGroup').attr('transform', d3.event.transform)
+    const svg = d3.select(this.ref.current)
+    const dataGroup = svg.select('.dataGroup')
+    const xAxis = svg.select<SVGSVGElement>('.xAxis')
+    const yAxis = svg.select<SVGSVGElement>('.yAxis')
+    const xGrid = svg.select<SVGSVGElement>('.xGrid')
+    const yGrid = svg.select<SVGSVGElement>('.yGrid')
 
-    d3.select(this.ref.current).select<SVGSVGElement>('.xAxis').call(
+    dataGroup.attr('transform', d3.event.transform)
+
+    xAxis.call(
       d3.axisBottom(xScale)
         .scale(d3.event.transform.rescaleX(xScale))
     )
 
-    d3.select(this.ref.current).select<SVGSVGElement>('.yAxis').call(
+    yAxis.call(
       d3.axisLeft(yScale)
         .scale(d3.event.transform.rescaleY(yScale))
     )
 
-    d3.select(this.ref.current).select<SVGSVGElement>('.xGrid').call(
+    xGrid.call(
       d3.axisBottom(xScale)
         .scale(d3.event.transform.rescaleX(xScale))
           .tickSize(chartHeight)
           .tickFormat(() => '')
     )
 
-    d3.select(this.ref.current).select<SVGSVGElement>('.yGrid').call(
+    yGrid.call(
       d3.axisLeft(yScale)
         .scale(d3.event.transform.rescaleY(yScale))
           .tickSize(-chartWidth)
