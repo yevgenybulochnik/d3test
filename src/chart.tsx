@@ -82,6 +82,11 @@ class Chart extends React.Component<Props, State> {
 
   }
 
+  reDrawChart = () => {
+    d3.select(this.ref.current).selectAll('*').remove()
+    this.drawChart()
+  }
+
   setData = () => {
     const { xScale, yScale } = this.state
 
@@ -146,8 +151,20 @@ class Chart extends React.Component<Props, State> {
     this.setData()
   }
 
-  componentDidUpdate() {
-    this.setData()
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if (this.props.width !== prevProps.width || this.props.height !== prevProps.height) {
+      this.setState({
+        chartWidth: this.props.width - this.props.margin*2,
+        chartHeight: this.props.height - this.props.margin*2,
+        xScale: d3.scaleLinear().domain([0, 1000]).range([0, this.props.width - this.props.margin*2]),
+        yScale: d3.scaleLinear().domain([0, 1000]).range([this.props.height - this.props.margin*2, 0])
+      }, () => {
+        this.reDrawChart()
+        this.setData()
+      })
+    } else {
+      this.setData()
+    }
   }
 
   render() {

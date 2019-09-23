@@ -2,6 +2,9 @@ import React from 'react';
 import './App.css';
 
 import Chart from './chart';
+import responsiveChart from './responsiveChart';
+
+const ResponsiveChart = responsiveChart(Chart)
 
 interface State {
   data: any;
@@ -68,6 +71,7 @@ class App extends React.Component<Props, State> {
         <button onClick={this.addData}>Add Data</button>
         <button onClick={this.removeData}>Remove Data</button>
         <button onClick={this.clearData}>Clear</button>
+        <ResponsiveChart className='responsive' data={this.state.data} margin={40}/>
         <Chart data={this.state.data} width={500} height={500} margin={40} ></Chart>
         <Chart data={this.state.data} width={1000} height={500} margin={40} ></Chart>
       </div>
