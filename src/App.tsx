@@ -51,7 +51,7 @@ class App extends React.Component<Props, State> {
       data.splice(randItem, 1)
       this.setState({
         data: data
-      }, () => console.log(this.state))
+      })
     }
   }
 
