@@ -1,2 +1,3 @@
 # D3 Integration with React
 This repo is a test setup / proof of concept for integrating D3 with react + typescript. A HOC is included that shows how to create a responsive SVG using this setup. The component takes a data prop, which updates anytime data is added or removed. All three charts are in sync as they share a common data source. Generation of the SVG is handed over to D3 which executes DOM manipulations to generate the charts. React is only responsible for the initial rendering of the SVG element. The charts include pannable and zoomable areas whose scales dynamically change on zoom.
+<img src="https://github.com/yevgenybulochnik/web-assets/blob/master/d3test/d3test.gif">
